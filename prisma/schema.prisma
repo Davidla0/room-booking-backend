@@ -1,0 +1,62 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum BookingStatus {
+  CONFIRMED
+  CANCELLED
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String
+  fullName     String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  bookings     Booking[]
+}
+
+model Room {
+  id            String    @id @default(uuid())
+  name          String
+  location      String
+  imageUrl      String?
+  capacity      Int
+  pricePerNight Int
+  currency      String
+  amenities     String[]  // text[] ב-Postgres
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  bookings      Booking[]
+
+  @@index([location])
+  @@index([capacity])
+}
+
+model Booking {
+  id        String        @id @default(uuid())
+  roomId    String
+  userId    String
+  checkIn   DateTime
+  checkOut  DateTime
+  guests    Int
+  status    BookingStatus @default(CONFIRMED)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  room      Room   @relation(fields: [roomId], references: [id])
+  user      User   @relation(fields: [userId], references: [id])
+
+  @@index([roomId, checkIn, checkOut])
+  @@index([userId])
+}
