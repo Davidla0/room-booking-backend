@@ -69,7 +69,6 @@ All endpoints are namespaced under `/api/`.
 
 Authentication is based on JWT (JSON Web Tokens).  
 Public endpoints: user registration and login.  
-All other endpoints require a valid `Authorization: Bearer <token>` header.
 
 ---
 
@@ -79,7 +78,7 @@ All other endpoints require a valid `Authorization: Bearer <token>` header.
 |---------------------------|--------|---------------|--------------------------------------|
 | `/auth/register`         | POST   | No            | Register a new user                  |
 | `/auth/login`            | POST   | No            | Login and obtain JWT                 |
-| `/rooms`                 | GET    | Yes           | Search for available rooms           |
+| `/rooms`                 | GET    | No           | Search for available rooms           |
 | `/bookings`              | POST   | Yes           | Create a new booking                 |
 | `/health`                | GET    | No            | Health-check for monitoring          |
 
