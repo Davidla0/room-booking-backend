@@ -171,19 +171,13 @@ The `Dockerfile` does the following:
 
 ### 5.2. Run Postgres + Backend with Docker
 
-If you already have a Postgres container running, you can simply start the backend and point `DATABASE_URL` to it.
 
-Example (simple local Postgres container):
 
+to start the backend and postgress container run : 
 ```bash
-docker run -d   --name room-booking-postgres   -e POSTGRES_USER=postgres   -e POSTGRES_PASSWORD=postgres   -e POSTGRES_DB=room_booking   -p 5432:5432   postgres:16
-```
+docker compose up -d --build
+ ```
 
-Then start the backend container:
-
-```bash
-docker run -d   --name room-booking-backend   --env DATABASE_URL="postgresql://postgres:postgres@room-booking-postgres:5432/room_booking?schema=public"   --env PORT=4000   --env JWT_SECRET="dev-secret-change-in-prod"   --env BCRYPT_SALT_ROUNDS=10   --link room-booking-postgres   -p 4000:4000   room-booking-backend
-```
 
 Now the backend is available on `http://localhost:4000`, but running fully inside Docker.
 
