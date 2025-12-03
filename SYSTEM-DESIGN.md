@@ -365,6 +365,7 @@ CREATE TABLE rooms (
     id              UUID PRIMARY KEY,
     name            VARCHAR(255) NOT NULL,
     location        VARCHAR(255) NOT NULL,
+    image           VARCHAR(255) 
     capacity        INTEGER NOT NULL,
     description     TEXT,
     price_per_night NUMERIC(10, 2) NOT NULL,
