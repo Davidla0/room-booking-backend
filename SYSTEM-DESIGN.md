@@ -167,7 +167,7 @@ Query parameters (examples):
 -pageSize (optional, default 20)
 
 **Example request**
-- `GET /api/v1/rooms?location=tel-aviv&capacity=4&checkIn=2025-12-01&checkOut=2025-12-05&page=1&pageSize=20`
+- `GET /api/rooms?location=tel-aviv&capacity=4&checkIn=2025-12-01&checkOut=2025-12-05&page=1&pageSize=20`
 -Authorization: Bearer <token>
 
 **Response (200 OK)**
@@ -199,7 +199,7 @@ Internally, the API uses:
 
 **Endpoint**
 
-- `POST /api/v1/bookings`
+- `POST /api/bookings`
 
 **Description**
 
@@ -245,7 +245,7 @@ The authenticated user is derived from the JWT (sub claim), so no userId is requ
 
 **Endpoint**
 
-- `GET /api/v1/health`
+- `GET /api/health`
 
 **Description**
 
