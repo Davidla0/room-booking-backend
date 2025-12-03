@@ -1,5 +1,4 @@
-import type { Room as DbRoom } from '../generated/prisma';
-
+import type { Room as DbRoom } from '@prisma/client';
 export type Room = DbRoom;
   
   export interface RoomSearchParams {

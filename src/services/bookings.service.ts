@@ -1,6 +1,6 @@
 
 import { prisma } from '../lib/prisma';
-import type { BookingStatus } from '../generated/prisma';
+import type { BookingStatus } from '@prisma/client';
 import { CreateBookingInput, BookingFilter, Booking } from '../types/booking.types';
 import { isOverlapping } from '../utils/data.utils'
 

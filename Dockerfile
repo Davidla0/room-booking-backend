@@ -9,6 +9,8 @@ RUN npm ci
 
 COPY . .
 
+ENV DATABASE_URL="postgresql://postgres:postgres@room-booking-postgres:5432/room_booking?schema=public"
+
 RUN npx prisma generate
 
 RUN npm run build

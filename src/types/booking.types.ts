@@ -1,4 +1,4 @@
-import type { Booking as DbBooking, BookingStatus, Room } from '../generated/prisma';
+import type { Booking as DbBooking, BookingStatus, Room }  from '@prisma/client';
 
 export type Booking = DbBooking & { room?: Room };
 
