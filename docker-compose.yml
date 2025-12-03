@@ -1,0 +1,30 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: room-booking-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: room_booking
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build: .
+    container_name: room-booking-backend
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/room_booking?schema=public
+      PORT: 4000
+      JWT_SECRET: dev-secret-change-in-prod
+      BCRYPT_SALT_ROUNDS: 10
+    ports:
+      - "4000:4000"
+
+volumes:
+  postgres_data:
