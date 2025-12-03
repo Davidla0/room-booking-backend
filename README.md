@@ -97,7 +97,7 @@ Create a database named `room_booking` and a user/password `postgres/postgres`
 ### 4.2. Install Dependencies
 
 ```bash
-cd backend
+cd room-booking-backend
 npm install
 ```
 
