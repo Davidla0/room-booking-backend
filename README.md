@@ -5,20 +5,20 @@ Built with:
 
 - **Node.js + TypeScript**
 - **Express**
-- **PostgreSQL (Docker)**
+- **PostgreSQL**
 - **Prisma ORM**
 - **JWT Authentication**
-- **Stateless Architecture**
+- **Stateless, containerized service**
 
-This service manages:
+This service is designed to run as an independent container (microservice) and expose a clean HTTP API for the frontend.
+
+It is responsible for:
 
 - User registration and login
 - Room search with filters and date range availability
-- Booking creation with conflict prevention (no double booking)
-- Data persistence in PostgreSQL via Prisma
-- Database migrations and seed demo data
-
-For full architecture documentation, see the system design document in the main platform repository.
+- Booking creation with conflict prevention (no double‑booking)
+- Data persistence in PostgreSQL using Prisma
+- Seed data for quick demo usage
 
 ---
 
@@ -27,47 +27,59 @@ For full architecture documentation, see the system design document in the main 
 ```text
 backend/
 ├── src/
-│   ├── controllers/      # Express route handlers
-│   ├── routes/           # API route definitions
-│   ├── services/         # Core business logic (auth, rooms, bookings)
-│   ├── middleware/       # Auth, validation, logging
-│   ├── types/            # TypeScript interfaces
-│   ├── utils/            # Shared helpers (e.g. date overlap calculation)
+│   ├── controllers/        # Express route handlers (auth, rooms, bookings)
+│   ├── routes/             # Route definitions
+│   ├── services/           # Business logic
+│   ├── middleware/         # Auth, validation, logging
+│   ├── types/              # TypeScript types/interfaces
+│   ├── utils/              # Shared helpers (e.g. date overlap check)
 │   ├── lib/
-│   │   └── prisma.ts     # Prisma client initialization
-│   ├── scripts/
-│   │   └── seed.ts       # DB seed script for demo data
-│   └── index.ts          # Express app entry point
+│   │   └── prisma.ts       # Prisma client initialization
+│   └── scripts/
+│       └── seed.ts         # Seed script for demo data
 ├── prisma/
-│   ├── schema.prisma     # DB models (User, Room, Booking)
-│   └── migrations/       # Auto-generated Prisma migrations
-├── Dockerfile            # Backend container definition
+│   ├── schema.prisma       # Prisma schema (User, Room, Booking)
+│   └── migrations/         # Generated migrations
+├── Dockerfile              # Backend container definition
 ├── package.json
-└── .env                  # Backend environment variables (local)
+└── README.md
 ```
 
 ---
 
 ## 2. Requirements
 
+For local development without Docker:
+
 - Node.js (LTS)
-- Docker + Docker Compose
+- PostgreSQL
 - npm
+
+For containerized environment:
+
+- Docker
 
 ---
 
 ## 3. Environment Variables
 
-Create **backend/.env**:
+The backend needs the following environment variables:
 
 ```env
+# Connection string for Postgres
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/room_booking?schema=public"
+
+# HTTP port for the API
 PORT=4000
+
+# JWT
 JWT_SECRET="dev-secret-change-in-prod"
 BCRYPT_SALT_ROUNDS=10
 ```
 
-When running inside Docker, the `DATABASE_URL` will typically point to the Docker service name instead of `localhost`. For example:
+> When running inside Docker, the `DATABASE_URL` host will typically be the **service name** of the Postgres container (e.g. `room-booking-postgres`) instead of `localhost`.
+
+Example (in Docker):
 
 ```env
 DATABASE_URL="postgresql://postgres:postgres@room-booking-postgres:5432/room_booking?schema=public"
@@ -75,51 +87,33 @@ DATABASE_URL="postgresql://postgres:postgres@room-booking-postgres:5432/room_boo
 
 ---
 
-## 4. Start PostgreSQL with Docker
+## 4. Running Locally (without Docker)
 
-From the main platform repository (where `docker-compose.yml` lives):
+### 4.1. Start PostgreSQL
 
-```bash
-docker compose up -d
-```
+Create a database named `room_booking` and a user/password `postgres/postgres`  
+(or adjust `DATABASE_URL` accordingly).
 
-This will start:
-
-- **Postgres** on `localhost:5432`
-- **Adminer** (DB UI) at `http://localhost:8080`
-
-Credentials and DB name are defined in the `docker-compose.yml` and aligned with the `DATABASE_URL` in `.env`.
-
----
-
-## 5. Install Dependencies
+### 4.2. Install Dependencies
 
 ```bash
 cd backend
 npm install
 ```
 
----
-
-## 6. Run Migrations
-
-Apply Prisma migrations to create the schema:
+### 4.3. Run Prisma Migrations
 
 ```bash
 npx prisma migrate dev
 ```
 
-This creates the tables:
+This will apply the migrations and create the tables:
 
 - `User`
 - `Room`
 - `Booking`
 
-You can inspect them via Adminer if desired.
-
----
-
-## 7. Seed Demo Data (Recommended)
+### 4.4. (Optional) Seed Demo Data
 
 ```bash
 npm run seed
@@ -130,17 +124,13 @@ The seed script will:
 - Clear existing `User`, `Room`, and `Booking` rows
 - Create a demo user:
 
-  - email: `demo@example.com`  
+  - email: `demo@example.com`
   - password: `demo1234`
 
-- Insert 3 sample rooms (Tel Aviv & Jerusalem)
-- Create a confirmed booking for one of the rooms
+- Insert 3 sample rooms
+- Create one confirmed booking
 
-This allows you to log in and see bookings immediately.
-
----
-
-## 8. Start the Backend Server (Local Dev)
+### 4.5. Start the Backend Server
 
 ```bash
 npm run dev
@@ -160,15 +150,85 @@ curl http://localhost:4000/api/health
 
 ---
 
-## 9. API Overview
+## 5. Running as a Dockerized Microservice
+
+The backend is designed to run inside a container and talk to a Postgres container over a Docker network.
+
+### 5.1. Build the Backend Image
+
+From the `backend` directory:
+
+```bash
+docker build -t room-booking-backend .
+```
+
+The `Dockerfile` does the following:
+
+1. Installs dependencies via `npm ci`
+2. Runs `npx prisma generate`
+3. Builds the TypeScript sources (`npm run build`)
+4. Starts the compiled server with `node dist/index.js`
+
+### 5.2. Run Postgres + Backend with Docker
+
+If you already have a Postgres container running, you can simply start the backend and point `DATABASE_URL` to it.
+
+Example (simple local Postgres container):
+
+```bash
+docker run -d   --name room-booking-postgres   -e POSTGRES_USER=postgres   -e POSTGRES_PASSWORD=postgres   -e POSTGRES_DB=room_booking   -p 5432:5432   postgres:16
+```
+
+Then start the backend container:
+
+```bash
+docker run -d   --name room-booking-backend   --env DATABASE_URL="postgresql://postgres:postgres@room-booking-postgres:5432/room_booking?schema=public"   --env PORT=4000   --env JWT_SECRET="dev-secret-change-in-prod"   --env BCRYPT_SALT_ROUNDS=10   --link room-booking-postgres   -p 4000:4000   room-booking-backend
+```
+
+Now the backend is available on `http://localhost:4000`, but running fully inside Docker.
+
+### 5.3. Running Prisma Migrations & Seed **inside** the Container
+
+When using Docker end‑to‑end, the DB lives in a container, so it is often convenient to run migrations and seed **inside** the backend container.
+
+After the containers are up:
+
+```bash
+# Run migrations inside the backend container
+docker exec -it room-booking-backend npx prisma migrate deploy
+
+# Seed demo data
+docker exec -it room-booking-backend node dist/scripts/seed.js
+```
+
+> This ensures the database schema and seed data are aligned with the exact version of the backend image they are testing.
+
+---
+
+## 6. API Overview
 
 ### Auth
 
 - `POST /api/auth/register`  
-  - body: `{ "email": string, "password": string, "fullName": string }`
+  Body:
+  ```json
+  {
+    "email": "user@example.com",
+    "password": "string",
+    "fullName": "User Name"
+  }
+  ```
+
 - `POST /api/auth/login`  
-  - body: `{ "email": string, "password": string }`  
-  - returns: JWT and user profile
+  Body:
+  ```json
+  {
+    "email": "user@example.com",
+    "password": "string"
+  }
+  ```
+
+Both endpoints return a JWT token and basic user info.
 
 ### Rooms
 
@@ -176,53 +236,40 @@ curl http://localhost:4000/api/health
 
 Query parameters:
 
-- `location` – filter by city
-- `capacity` – minimum capacity
-- `checkIn`, `checkOut` – date range (ISO `YYYY-MM-DD`)
+- `location` – optional, filter by city
+- `capacity` – optional, minimum capacity
+- `checkIn`, `checkOut` – required for availability check
 
-The API returns only rooms that are not already booked in the requested date range.
+Response contains:
+
+- `items`: array of rooms
+- `total`, `page`, `pageSize`
+
+Only rooms that are **not already booked** in the requested date range are returned.
 
 ### Bookings
 
 - `GET /api/bookings/me`  
-  - Requires `Authorization: Bearer <token>` header
-  - Returns bookings for the authenticated user
+  Requires `Authorization: Bearer <token>`.  
+  Returns all bookings for the currently authenticated user.
 
 - `POST /api/bookings`  
-  - Requires `Authorization: Bearer <token>`
-  - body:
-    ```json
-    {
-      "roomId": "uuid",
-      "checkIn": "2025-12-10",
-      "checkOut": "2025-12-15",
-      "guests": 2
-    }
-    ```
+  Requires `Authorization: Bearer <token>`.  
+  Body:
+  ```json
+  {
+    "roomId": "uuid",
+    "checkIn": "2025-12-10",
+    "checkOut": "2025-12-15",
+    "guests": 2
+  }
+  ```
 
-Booking creation includes:
+Conflict detection logic ensures that:
 
-- Checking for overlapping bookings for the same room
-- Returning a clear error when the room is already booked
-
----
-
-## 10. Docker (Backend Service Only)
-
-Build:
-
-```bash
-docker build -t room-booking-backend .
-```
-
-Run:
-
-```bash
-docker run --env-file .env -p 4000:4000 room-booking-backend
-```
-
-Ensure `DATABASE_URL` points to a reachable Postgres instance (Docker network or localhost).
+- Overlapping bookings for the same room are rejected
+- The client receives a clear error if the room is already booked
 
 ---
 
-The backend is stateless, production-oriented and ready to run as an independent microservice.
+The backend is stateless and containerized, and can be deployed as a microservice behind a load balancer and consumed by the React frontend or any other client.
