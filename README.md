@@ -154,24 +154,7 @@ curl http://localhost:4000/api/health
 
 The backend is designed to run inside a container and talk to a Postgres container over a Docker network.
 
-### 5.1. Build the Backend Image
-
-From the `backend` directory:
-
-```bash
-docker build -t room-booking-backend .
-```
-
-The `Dockerfile` does the following:
-
-1. Installs dependencies via `npm ci`
-2. Runs `npx prisma generate`
-3. Builds the TypeScript sources (`npm run build`)
-4. Starts the compiled server with `node dist/index.js`
-
-### 5.2. Run Postgres + Backend with Docker
-
-
+### 5.1. Run Postgres + Backend with Docker
 
 to start the backend and postgress container run : 
 ```bash
@@ -181,7 +164,7 @@ docker compose up -d --build
 
 Now the backend is available on `http://localhost:4000`, but running fully inside Docker.
 
-### 5.3. Running Prisma Migrations & Seed **inside** the Container
+### 5.2. Running Prisma Migrations & Seed **inside** the Container
 
 When using Docker end‑to‑end, the DB lives in a container, so it is often convenient to run migrations and seed **inside** the backend container.
 
